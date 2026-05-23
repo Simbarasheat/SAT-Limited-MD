@@ -242,32 +242,60 @@
 
   <script>
 
-    function generateCode(){
+async function generateCode(){
 
-      const number =
-        document.getElementById("number").value
+  const number =
+    document.getElementById("number").value
 
-      if(!number){
+  if(!number){
 
-        alert("Enter WhatsApp number")
-        return
-      }
+    alert("Enter WhatsApp number")
+    return
+  }
 
-      // fake pair code demo
-      const randomCode =
-        Math.random()
-        .toString(36)
-        .substring(2,10)
-        .toUpperCase()
+  document.getElementById("code")
+  .innerText = "Loading..."
 
-      document.getElementById("pairBox")
-      .style.display = "block"
+  document.getElementById("pairBox")
+  .style.display = "block"
+
+  try{
+
+    const response =
+      await fetch("/pair", {
+
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+          number
+        })
+      })
+
+    const data = await response.json()
+
+    if(data.status){
 
       document.getElementById("code")
-      .innerText = randomCode
+      .innerText = data.code
+
+    } else {
+
+      document.getElementById("code")
+      .innerText = "FAILED"
     }
 
-  </script>
+  } catch(err){
+
+    document.getElementById("code")
+    .innerText = "ERROR"
+  }
+}
+
+</script>
 
 </body>
 </html>
