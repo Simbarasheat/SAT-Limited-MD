@@ -4,98 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAT Limited MD</title>
-
   <style>
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-      font-family:Arial, sans-serif;
-    }
-    body{
-      background:#0a0a0a;
-      color:white;
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      overflow:hidden;
-    }
-    .bg{
-      position:absolute;
-      width:100%;
-      height:100%;
-      background:
-      radial-gradient(circle at top left,#00ff9950,transparent 30%),
-      radial-gradient(circle at bottom right,#00ff9950,transparent 30%);
-      z-index:-1;
-    }
-    .panel{
-      width:90%;
-      max-width:420px;
-      background:#121212;
-      border:1px solid #00ff99;
-      border-radius:20px;
-      padding:30px;
-      box-shadow:0 0 25px rgba(0,255,153,0.3);
-      animation:fadeIn 1s ease;
-    }
-    @keyframes fadeIn{
-      from{opacity:0;transform:translateY(20px);}
-      to{opacity:1;transform:translateY(0);}
-    }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:Arial, sans-serif;}
+    body{background:#0a0a0a;color:white;min-height:100vh;display:flex;justify-content:center;align-items:center;overflow:hidden;}
+    .bg{position:absolute;width:100%;height:100%;background:radial-gradient(circle at top left,#00ff9950,transparent 30%),radial-gradient(circle at bottom right,#00ff9950,transparent 30%);z-index:-1;}
+    .panel{width:90%;max-width:420px;background:#121212;border:1px solid #00ff99;border-radius:20px;padding:30px;box-shadow:0 0 25px rgba(0,255,153,0.3);animation:fadeIn 1s ease;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
     .logo{text-align:center;margin-bottom:25px;}
     .logo h1{color:#00ff99;font-size:34px;}
     .logo p{color:#aaa;margin-top:8px;}
     .status{text-align:center;margin-bottom:20px;color:#00ff99;font-weight:bold;}
     .input-box{margin-bottom:20px;}
     .input-box label{display:block;margin-bottom:8px;color:#ccc;}
-    .input-box input{
-      width:100%;
-      padding:14px;
-      border:none;
-      border-radius:10px;
-      background:#1c1c1c;
-      color:white;
-      outline:none;
-      border:1px solid #333;
-    }
-    .input-box input:focus{
-      border:1px solid #00ff99;
-      box-shadow:0 0 10px #00ff9950;
-    }
-    .btn{
-      width:100%;
-      padding:14px;
-      background:#00ff99;
-      color:black;
-      border:none;
-      border-radius:10px;
-      font-size:16px;
-      font-weight:bold;
-      cursor:pointer;
-      transition:0.3s;
-    }
+    .input-box input{width:100%;padding:14px;border:none;border-radius:10px;background:#1c1c1c;color:white;outline:none;border:1px solid #333;}
+    .input-box input:focus{border:1px solid #00ff99;box-shadow:0 0 10px #00ff9950;}
+    .btn{width:100%;padding:14px;background:#00ff99;color:black;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.3s;margin-bottom:10px;}
     .btn:disabled{background:#555;cursor:not-allowed;}
     .btn:hover:not(:disabled){background:white;transform:scale(1.03);}
-    .pair-code{
-      margin-top:20px;
-      padding:15px;
-      background:#1a1a1a;
-      border-radius:10px;
-      text-align:center;
-      display:none;
-    }
+    .btn-secondary{background:#333;color:#00ff99;}
+    .pair-code{margin-top:20px;padding:15px;background:#1a1a1a;border-radius:10px;text-align:center;display:none;}
     .pair-code h2{color:#00ff99;margin-bottom:10px;}
-    .code{
-      font-size:28px;
-      font-weight:bold;
-      letter-spacing:5px;
-      color:white;
-      word-break:break-word;
-    }
+    .code{font-size:28px;font-weight:bold;letter-spacing:5px;color:white;word-break:break-word;}
     .error{color:#ff5555;margin-top:10px;font-size:14px;}
     .footer{margin-top:25px;text-align:center;color:#666;font-size:14px;}
+    #qrImg{width:220px;height:220px;border-radius:12px;margin:0 auto;display:block;}
   </style>
 </head>
 <body>
@@ -113,7 +45,8 @@
       <input type="text" id="number" placeholder="260XXXXXXXXX" inputmode="numeric">
     </div>
 
-    <button class="btn" id="btn" onclick="generateCode()">Generate Pair Code</button>
+    <button class="btn" id="pairBtn" onclick="generateCode()">Generate Pair Code</button>
+    <button class="btn btn-secondary" id="qrBtn" onclick="generateQR()">Use QR Code Instead</button>
 
     <div class="pair-code" id="pairBox">
       <h2>PAIR CODE</h2>
@@ -121,13 +54,35 @@
       <div class="error" id="error"></div>
     </div>
 
-    <div class="footer">SAT Limited © 2026</div>
+    <div class="pair-code" id="qrBox">
+      <h2>SCAN QR CODE</h2>
+      <img id="qrImg">
+      <p style="font-size:13px;color:#aaa;margin-top:10px">WhatsApp → Linked Devices → Scan QR</p>
+    </div>
+
+    <div class="footer"> © 2026 SAT Limited</div>
   </div>
 
 <script>
+const statusEl = document.getElementById("status")
+
+async function checkStatus() {
+  try {
+    const res = await fetch("/status")
+    const data = await res.json()
+    if (data.status === "connected") {
+      statusEl.innerText = "● ONLINE"
+      statusEl.style.color = "#00ff99"
+    } else {
+      statusEl.innerText = "● OFFLINE"
+      statusEl.style.color = "#ff5555"
+    }
+  } catch {}
+}
+
 async function generateCode() {
   const number = document.getElementById("number").value.trim().replace(/[^0-9]/g, "")
-  const btn = document.getElementById("btn")
+  const btn = document.getElementById("pairBtn")
   const pairBox = document.getElementById("pairBox")
   const codeEl = document.getElementById("code")
   const errorEl = document.getElementById("error")
@@ -140,6 +95,7 @@ async function generateCode() {
   btn.disabled = true
   btn.innerText = "Generating..."
   pairBox.style.display = "block"
+  document.getElementById("qrBox").style.display = "none"
   codeEl.innerText = "Generating..."
   errorEl.innerText = ""
 
@@ -155,41 +111,77 @@ async function generateCode() {
     })
 
     clearTimeout(timeout)
-
     const contentType = response.headers.get("content-type")
-    let data
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json()
-    } else {
-      const text = await response.text()
-      throw new Error("Server timed out or crashed. Try again.")
+    
+    if (!contentType?.includes("application/json")) {
+      throw new Error("Server timed out. Try QR code instead.")
     }
+
+    const data = await response.json()
 
     if (data.status) {
       codeEl.innerText = data.code
+      errorEl.innerText = "Open WhatsApp → Linked Devices → Link with phone number"
     } else {
       codeEl.innerText = "FAILED"
-      errorEl.innerText = data.message || "Failed to generate code"
+      errorEl.innerText = data.message
     }
 
   } catch (err) {
-    if (err.name === 'AbortError') {
-      errorEl.innerText = "Request timed out. Refresh and try again."
-      codeEl.innerText = "TIMEOUT"
-    } else {
-      errorEl.innerText = err.message
-      codeEl.innerText = "ERROR"
-    }
-    console.error(err)
+    errorEl.innerText = err.name === 'AbortError' ? "Request timed out. Try QR code." : err.message
+    codeEl.innerText = "ERROR"
   } finally {
     btn.disabled = false
     btn.innerText = "Generate Pair Code"
   }
 }
 
+async function generateQR() {
+  const qrBox = document.getElementById("qrBox")
+  const qrImg = document.getElementById("qrImg")
+  const qrBtn = document.getElementById("qrBtn")
+  
+  qrBtn.disabled = true
+  qrBtn.innerText = "Generating QR..."
+  qrBox.style.display = "block"
+  document.getElementById("pairBox").style.display = "none"
+  qrImg.src = ""
+
+  try {
+    const res = await fetch("/qr")
+    const data = await res.json()
+
+    if (data.error) throw new Error(data.error)
+    if (data.status === "connected") {
+      alert("Already connected!")
+      return
+    }
+
+    qrImg.src = data.qr
+    
+    const check = setInterval(async () => {
+      const s = await fetch("/status").then(r => r.json())
+      if (s.status === "connected") {
+        clearInterval(check)
+        qrBox.innerHTML = "<h2 style='color:#00ff99'>CONNECTED ✅</h2>"
+        checkStatus()
+      }
+    }, 3000)
+
+  } catch (err) {
+    alert("QR Error: " + err.message)
+  } finally {
+    qrBtn.disabled = false
+    qrBtn.innerText = "Use QR Code Instead"
+  }
+}
+
 document.getElementById("number").addEventListener("input", (e) => {
   e.target.value = e.target.value.replace(/[^0-9]/g, "")
 })
+
+checkStatus()
+setInterval(checkStatus, 10000)
 </script>
 </body>
 </html>
