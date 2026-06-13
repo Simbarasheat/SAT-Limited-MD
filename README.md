@@ -109,7 +109,7 @@ module.exports = {
   botName: "SAT Limited MD",
   ownerName: "SAT Limited",
   prefix: ".",
-  ownerNumber: "260772697513"
+  ownerNumber: "260760576801"
 }
 ```
 
@@ -144,6 +144,6 @@ Apache License 2.0 - See LICENSE file for details
 ## Support
 
 For issues or questions, contact the owner:
-📱 **+260772697513** (WhatsApp)
+📱 **+260760576801** (WhatsApp)
 
 **Powered by SAT Limited**
