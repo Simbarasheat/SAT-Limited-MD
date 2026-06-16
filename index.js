@@ -251,9 +251,13 @@ module.exports = app
 
 if (require.main === module) {
   const PORT = process.env.PORT || 3000
-  getSocket().then(() => {
-    app.listen(PORT, () => console.log(chalk.cyan(`🚀 Server running on ${PORT}`)))
-  }).catch(err => {
+  app.listen(PORT, () => {
+  console.log(`🚀 Server running on ${PORT}`)
+})
+
+getSocket().catch(err => {
+  console.log("Socket failed:", err.message)
+})
     console.log(chalk.red("Failed to start bot:"), err.message)
     setTimeout(() => {
       console.log(chalk.yellow("Retrying..."))
